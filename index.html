@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>老黄历 · Daily Almanac</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:       #1a5c35;
+      --green-mid:   #2a7a4a;
+      --green-light: #3a9a5c;
+      --cream:       #f7f0e0;
+      --cream-dark:  #ede3cc;
+      --red:         #c0392b;
+      --red-deep:    #96281b;
+      --gold:        #c9982a;
+      --gold-light:  #e8c060;
+      --ink:         #0f3320;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #e8dfc8;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(192,57,43,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(26,92,53,0.07) 0%, transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      font-family: 'Noto Serif SC', serif;
+    }
+
+    /* ── Paper card ── */
+    .almanac {
+      width: 100%;
+      max-width: 360px;
+      background: var(--cream);
+      border-radius: 4px 4px 2px 2px;
+      box-shadow:
+        0 2px 0 var(--cream-dark),
+        0 4px 0 #d4c9a8,
+        0 6px 0 #c8bb96,
+        0 20px 60px rgba(0,0,0,0.28),
+        0 6px 20px rgba(0,0,0,0.18);
+      position: relative;
+      overflow: hidden;
+      animation: dropIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes dropIn {
+      from { opacity:0; transform: translateY(-24px) scale(0.97); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    /* Paper texture overlay */
+    .almanac::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.6;
+    }
+
+    /* ── HEADER BANNER ── */
+    .header-banner {
+      background: linear-gradient(180deg, #d9452e 0%, var(--red) 40%, var(--red-deep) 100%);
+      padding: 10px 20px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .header-banner::before,
+    .header-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 1px;
+      background: var(--gold-light);
+      opacity: 0.4;
+    }
+
+    .rivet {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--gold-light), var(--gold) 50%, #a07010);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    }
+
+    .header-title-wrap {
+      flex: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-title {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 22px;
+      color: var(--gold-light);
+      letter-spacing: 0.18em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 12px rgba(232,192,96,0.3);
+    }
+
+    .header-subtitle {
+      font-size: 9.5px;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* ── MONTH / YEAR BAR ── */
+    .month-bar {
+      border-bottom: 2px solid var(--green);
+      padding: 8px 16px 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+    }
+
+    .month-bar-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1.5px solid var(--green);
+      padding: 4px 16px;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    /* corner ornaments */
+    .month-bar-inner::before,
+    .month-bar-inner::after {
+      content: '◈';
+      color: var(--green);
+      font-size: 11px;
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+    }
+    .month-bar-inner::before { left: -14px; }
+    .month-bar-inner::after  { right: -14px; }
+
+    .month-bar-text {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .month-dot {
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    /* ── CENTER SECTION ── */
+    .center-section {
+      padding: 18px 14px 14px;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border-bottom: 2px solid var(--green);
+      min-height: 148px;
+    }
+
+    /* Vertical phrase columns */
+    .phrase-col {
+      writing-mode: vertical-rl;
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 15px;
+      color: var(--green);
+      letter-spacing: 0.08em;
+      line-height: 1.6;
+      flex-shrink: 0;
+      width: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.88;
+    }
+    .phrase-col.right { text-orientation: mixed; }
+
+    /* Big day display */
+    .day-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 8px;
+    }
+
+    .day-number {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 88px;
+      line-height: 0.95;
+      color: var(--green);
+      text-shadow: 2px 3px 0 rgba(26,92,53,0.15);
+      letter-spacing: -2px;
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.012); }
+    }
+
+    .day-lunar-label {
+      font-size: 12px;
+      color: var(--green-mid);
+      letter-spacing: 0.12em;
+      font-weight: 500;
+    }
+
+    /* ── GANZHI ROW ── */
+    .ganzhi-row {
+      background: var(--green);
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ganzhi-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .ganzhi-label {
+      font-size: 8.5px;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+
+    .ganzhi-value {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 17px;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+    }
+
+    .ganzhi-sep {
+      color: rgba(255,255,255,0.2);
+      font-size: 18px;
+      margin-top: 6px;
+    }
+
+    /* ── INFO ROW ── */
+    .info-row {
+      border-bottom: 1.5px solid var(--green);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(26,92,53,0.04);
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .info-label {
+      font-size: 8.5px;
+      color: var(--green-mid);
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+
+    .info-value {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* ── MAIN GRID: BAGUA + 宜忌 ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 52px 1fr;
+      border-bottom: 2px solid var(--green);
+      min-height: 130px;
+    }
+
+    .yi-col, .ji-col {
+      padding: 10px 10px 10px 12px;
+    }
+
+    .ji-col {
+      padding-left: 10px;
+      padding-right: 12px;
+      border-left: 1.5px solid rgba(26,92,53,0.2);
+    }
+
+    .yi-col { border-right: 1.5px solid rgba(26,92,53,0.2); }
+
+    .col-title {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 16px;
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .col-title-en {
+      font-size: 9px;
+      font-family: 'Noto Serif SC', serif;
+      opacity: 0.6;
+      letter-spacing: 0.04em;
+      font-weight: 500;
+    }
+
+    .yi-col .col-title-en { color: var(--green); }
+    .ji-col .col-title-en { color: var(--red); }
+
+    .yi-col .col-title { color: var(--green); }
+    .ji-col .col-title { color: var(--red); }
+
+    .col-title-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .yi-col .col-title-dot { background: var(--green); }
+    .ji-col .col-title-dot { background: var(--red); }
+
+    .almanac-item {
+      font-size: 11px;
+      color: var(--ink);
+      line-height: 1.75;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .almanac-item-en {
+      font-size: 9px;
+      color: var(--green-mid);
+      font-family: 'Noto Serif SC', serif;
+      opacity: 0.75;
+      letter-spacing: 0.02em;
+    }
+
+    .ji-col .almanac-item-en { color: #a03020; }
+
+    .almanac-item::before {
+      content: '·';
+      font-size: 14px;
+      line-height: 1;
+      color: var(--green-mid);
+      flex-shrink: 0;
+    }
+
+    .ji-col .almanac-item::before { color: var(--red); }
+
+    /* Center bagua column */
+    .bagua-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0;
+    }
+
+    .bagua-symbol {
+      font-size: 38px;
+      line-height: 1;
+      color: var(--green);
+      opacity: 0.85;
+      animation: rotateSlow 30s linear infinite;
+      display: block;
+      text-align: center;
+    }
+
+    @keyframes rotateSlow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── ZODIAC STRIP ── */
+    .zodiac-strip {
+      background: rgba(26,92,53,0.06);
+      border-bottom: 1.5px solid var(--green);
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .zodiac-main {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .zodiac-emoji {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .zodiac-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .zodiac-zh {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 14px;
+      color: var(--green);
+      letter-spacing: 0.05em;
+    }
+
+    .zodiac-en {
+      font-size: 10px;
+      color: var(--green-mid);
+      letter-spacing: 0.06em;
+    }
+
+    .lucky-mini {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .lucky-mini-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--green-mid);
+    }
+
+    .swatch-mini {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    /* ── FOOTER BANNER ── */
+    .footer-banner {
+      background: linear-gradient(180deg, var(--green) 0%, var(--ink) 100%);
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .footer-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .footer-zh {
+      font-family: 'Ma Shan Zheng', cursive;
+      font-size: 13px;
+      color: var(--gold-light);
+      letter-spacing: 0.14em;
+      opacity: 0.92;
+    }
+
+    .footer-en {
+      font-size: 8px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .footer-sep {
+      color: var(--gold);
+      margin: 0 8px;
+      opacity: 0.5;
+    }
+
+    /* Horizontal divider lines */
+    .h-rule {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green) 20%, var(--green) 80%, transparent);
+      opacity: 0.3;
+    }
+
+    /* Torn edge at bottom */
+    .torn-edge {
+      height: 8px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .torn-edge::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -10px; right: -10px;
+      height: 16px;
+      background: var(--cream-dark);
+      clip-path: polygon(
+        0% 100%, 2% 20%, 4% 80%, 6% 10%, 8% 70%, 10% 0%,
+        12% 60%, 14% 15%, 16% 75%, 18% 5%, 20% 65%, 22% 20%,
+        24% 80%, 26% 0%, 28% 70%, 30% 25%, 32% 85%, 34% 10%,
+        36% 60%, 38% 20%, 40% 75%, 42% 5%, 44% 65%, 46% 30%,
+        48% 80%, 50% 10%, 52% 70%, 54% 25%, 56% 85%, 58% 15%,
+        60% 65%, 62% 0%, 64% 60%, 66% 20%, 68% 80%, 70% 5%,
+        72% 65%, 74% 25%, 76% 75%, 78% 10%, 80% 70%, 82% 20%,
+        84% 80%, 86% 0%, 88% 65%, 90% 30%, 92% 75%, 94% 15%,
+        96% 70%, 98% 20%, 100% 80%, 100% 100%
+      );
+    }
+  </style>
+</head>
+<body>
+<div class="almanac" id="almanac">
+
+  <!-- HEADER -->
+  <div class="header-banner">
+    <div class="rivet"></div>
+    <div class="header-title-wrap">
+      <div class="header-title">恭喜發財</div>
+      <div class="header-subtitle">Wishing You Prosperity</div>
+    </div>
+    <div class="rivet"></div>
+  </div>
+
+  <!-- MONTH BAR -->
+  <div class="month-bar">
+    <div class="month-bar-inner">
+      <span class="month-bar-text" id="month-bar-text">April 2026 · 四月</span>
+    </div>
+  </div>
+
+  <!-- CENTER: phrase + day + phrase -->
+  <div class="center-section">
+    <div class="phrase-col" id="phrase-left">财源茂盛达三江</div>
+    <div class="day-display">
+      <div class="day-number" id="day-number">十九</div>
+      <div class="day-lunar-label" id="day-label">农历 · 初七</div>
+    </div>
+    <div class="phrase-col right" id="phrase-right">生意兴隆通四海</div>
+  </div>
+
+  <!-- GANZHI ROW -->
+  <div class="ganzhi-row">
+    <div class="ganzhi-item">
+      <span class="ganzhi-label">岁次 Year</span>
+      <span class="ganzhi-value" id="gz-year">丙午年</span>
+    </div>
+    <div class="ganzhi-sep">|</div>
+    <div class="ganzhi-item">
+      <span class="ganzhi-label">月建 Month</span>
+      <span class="ganzhi-value" id="gz-month">壬辰月</span>
+    </div>
+    <div class="ganzhi-sep">|</div>
+    <div class="ganzhi-item">
+      <span class="ganzhi-label">日柱 Day</span>
+      <span class="ganzhi-value" id="gz-day">庚戌日</span>
+    </div>
+    <div class="ganzhi-sep">|</div>
+    <div class="ganzhi-item">
+      <span class="ganzhi-label">五行 Element</span>
+      <span class="ganzhi-value" id="gz-elem">金·土</span>
+    </div>
+  </div>
+
+  <!-- INFO ROW -->
+  <div class="info-row">
+    <div class="info-item">
+      <span class="info-label">农历 Lunar</span>
+      <span class="info-value" id="lunar-full">三月初七</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">星期 Weekday</span>
+      <span class="info-value" id="weekday">星期二</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">节气 Solar Term</span>
+      <span class="info-value" id="solar-term">清明</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">冲煞 Clash</span>
+      <span class="info-value" id="chong">冲龙</span>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: 宜 | ☯ | 忌 -->
+  <div class="main-grid">
+    <div class="yi-col">
+      <div class="col-title"><div class="col-title-dot"></div>宜 <span class="col-title-en">Auspicious</span></div>
+      <div id="yi-list"></div>
+    </div>
+    <div class="bagua-col">
+      <span class="bagua-symbol">☯</span>
+    </div>
+    <div class="ji-col">
+      <div class="col-title" style="justify-content:flex-end"><div class="col-title-dot"></div>忌 <span class="col-title-en">Avoid</span></div>
+      <div id="ji-list"></div>
+    </div>
+  </div>
+
+  <!-- ZODIAC STRIP -->
+  <div class="zodiac-strip">
+    <div class="zodiac-main">
+      <div class="zodiac-emoji" id="zodiac-emoji">🐴</div>
+      <div class="zodiac-text">
+        <div class="zodiac-zh" id="zodiac-zh">丙午 · 火马年</div>
+        <div class="zodiac-en" id="zodiac-en">Year of the Fire Horse</div>
+      </div>
+    </div>
+    <div class="lucky-mini">
+      <div class="lucky-mini-row" id="lucky-dir">吉方 Lucky Dir &nbsp;<span id="lucky-dir-val">南 South</span></div>
+      <div class="lucky-mini-row">
+        <span id="lucky-num">吉数 Lucky Num &nbsp;2 · 7</span>
+      </div>
+      <div class="lucky-mini-row" id="lucky-color-row">
+        幸运色 Colors
+        <div class="swatch-mini" id="swatch1"></div>
+        <div class="swatch-mini" id="swatch2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-banner">
+    <span class="footer-text"><span class="footer-zh">财源广进</span><span class="footer-en">Wealth Flowing In</span></span>
+    <span class="footer-sep">✦</span>
+    <span class="footer-text"><span class="footer-zh">黄道吉日</span><span class="footer-en">Auspicious Day</span></span>
+    <span class="footer-sep">✦</span>
+    <span class="footer-text"><span class="footer-zh">万事如意</span><span class="footer-en">All Goes Well</span></span>
+  </div>
+
+  <div class="torn-edge"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+
+// English translations for almanac terms
+const TRANS = {
+  '祈福':'Prayer','出行':'Travel','纳财':'Wealth','签约':'Contracts',
+  '婚嫁':'Marriage','开业':'Opening','访友':'Socialize','宴会':'Banquet',
+  '种植':'Planting','理发':'Haircut','修缮':'Repairs','购物':'Shopping',
+  '求学':'Study','读书':'Reading','冥想':'Meditation','写作':'Writing',
+  '旅游':'Tourism','探险':'Adventure','健身':'Fitness','运动':'Exercise',
+  '庆典':'Ceremony','装修':'Renovation','开工':'Construction','置业':'Property',
+  '艺术':'Art','创作':'Creation','美容':'Beauty','移居':'Relocation',
+  '安家':'Settling','商谈':'Negotiate','远足':'Hiking','斋戒':'Fasting',
+  '还愿':'Vows','装饰':'Decorating',
+  '动土':'Groundbreak','破土':'Excavate','开仓':'Storehouse','伐木':'Logging',
+  '争执':'Arguments','诉讼':'Litigation','远行':'Long Trip','手术':'Surgery',
+  '开市':'Trading','投资':'Investing','借贷':'Borrowing','赌博':'Gambling',
+  '搬家':'Moving','安床':'Bedding','埋葬':'Burial','祭祀':'Rituals',
+  '哭泣':'Mourning','嫁娶':'Wedding','打针':'Injections',
+};
+
+const STEMS     = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES  = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ELEM_ZH   = ['木','木','火','火','土','土','金','金','水','水'];
+const ELEM_EN   = ['Wood','Wood','Fire','Fire','Earth','Earth','Metal','Metal','Water','Water'];
+const ZODIAC_ZH = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+const ZODIAC_EN = ['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];
+const ZODIAC_EM = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐑','🐵','🐓','🐶','🐷'];
+const CHONG_ZH  = ['马','羊','猴','鸡','狗','猪','鼠','牛','虎','兔','龙','蛇'];
+const WEEKDAYS  = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+const MONTHS_ZH = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','腊月'];
+const LUNAR_DAYS= ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+                   '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+                   '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// Solar terms approx (month 1-12, day)
+const SOLAR_TERMS = [
+  [[6,'小寒'],[20,'大寒']],[[4,'立春'],[19,'雨水']],[[6,'惊蛰'],[21,'春分']],
+  [[5,'清明'],[20,'谷雨']],[[6,'立夏'],[21,'小满']],[[6,'芒种'],[21,'夏至']],
+  [[7,'小暑'],[23,'大暑']],[[7,'立秋'],[23,'处暑']],[[8,'白露'],[23,'秋分']],
+  [[8,'寒露'],[23,'霜降']],[[7,'立冬'],[22,'小雪']],[[7,'大雪'],[22,'冬至']],
+];
+
+// Phrases by element
+const PHRASES = {
+  Wood:  ['财源茂盛达三江','生意兴隆通四海'],
+  Fire:  ['南风送暖入屠苏','红日初升照大地'],
+  Earth: ['厚德载物天地宽','中和之道万事达'],
+  Metal: ['金声玉振四方闻','白云深处有人家'],
+  Water: ['上善若水天下润','波平如镜映蓝天'],
+};
+
+const DIRECTIONS = {Wood:'东 East',Fire:'南 South',Earth:'中 Center',Metal:'西 West',Water:'北 North'};
+const LUCKY_COLORS = {
+  Wood:  {zh:['青','绿'],hex:['#5BAD6F','#8BC34A']},
+  Fire:  {zh:['红','橙'],hex:['#E85D4A','#FF8C42']},
+  Earth: {zh:['黄','棕'],hex:['#F0C040','#A07850']},
+  Metal: {zh:['白','金'],hex:['#C8C0B0','#C9982A']},
+  Water: {zh:['黑','蓝'],hex:['#3A4A5A','#5B8DB8']},
+};
+const LUCKY_NUMS = {Wood:[3,8],Fire:[2,7],Earth:[5,0],Metal:[4,9],Water:[1,6]};
+
+// CNY table 2000-2040 [month, day]
+const CNY = [
+  [1,28],[1,24],[2,12],[2,1],[1,22],[2,9],[1,29],[2,18],[2,7],[1,26],
+  [2,14],[2,3],[1,23],[2,10],[1,31],[2,19],[2,8],[1,28],[2,16],[2,5],
+  [1,25],[2,12],[2,1],[1,22],[2,10],[1,29],[2,17],[2,6],[1,26],[2,13],
+  [2,3],[1,23],[2,11],[1,31],[2,19],[2,8],[1,28],[2,15],[2,4],[1,25],[2,12],
+];
+
+// Almanac data keyed by (stemIdx%5)*4 + (branchIdx%4)
+const YI_DATA = [
+  ['祈福','出行','纳财','签约'],['婚嫁','开业','访友','宴会'],
+  ['种植','理发','修缮','购物'],['求学','读书','冥想','写作'],
+  ['旅游','探险','健身','运动'],['开业','签约','纳财','庆典'],
+  ['婚嫁','祈福','出行','宴会'],['装修','修缮','开工','置业'],
+  ['求学','艺术','创作','美容'],['运动','健身','理发','购物'],
+  ['祈福','斋戒','冥想','还愿'],['种植','移居','安家','置业'],
+  ['开业','纳财','签约','商谈'],['婚嫁','宴会','访友','庆典'],
+  ['求学','写作','艺术','创作'],['出行','旅游','远足','探险'],
+  ['开业','签约','纳财','置业'],['理发','美容','购物','装饰'],
+  ['祈福','婚嫁','宴会','庆典'],['冥想','求学','读书','写作'],
+];
+const JI_DATA = [
+  ['动土','破土','开仓','伐木'],['争执','诉讼','远行','手术'],
+  ['开市','投资','借贷','赌博'],['搬家','安床','动土','埋葬'],
+  ['祭祀','哭泣','嫁娶','开仓'],['争执','动土','安床','埋葬'],
+  ['手术','打针','伐木','破土'],['开仓','投资','借贷','赌博'],
+  ['远行','搬家','嫁娶','争执'],['动土','埋葬','哭泣','诉讼'],
+  ['争执','诉讼','开市','投资'],['手术','打针','伐木','破土'],
+  ['远行','哭泣','嫁娶','埋葬'],['动土','破土','开仓','借贷'],
+  ['搬家','安床','争执','诉讼'],['嫁娶','安床','开仓','伐木'],
+  ['手术','打针','哭泣','埋葬'],['争执','诉讼','动土','破土'],
+  ['开市','投资','远行','搬家'],['争执','嫁娶','伐木','破土'],
+];
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+
+function toJDN(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const Y = y + 4800 - a, M = m + 12 * a - 3;
+  return d + Math.floor((153*M+2)/5) + 365*Y + Math.floor(Y/4) - Math.floor(Y/100) + Math.floor(Y/400) - 32045;
+}
+
+function dayGZ(jdn) { return ((jdn + 49) % 60 + 60) % 60; }
+
+function getLunar(date) {
+  const gy = date.getFullYear(), gm = date.getMonth()+1, gd = date.getDate();
+  const todayJDN = toJDN(gy, gm, gd);
+  let ly = gy;
+  if (ly < 2000 || ly > 2040) return {year:ly,month:1,day:1,stemIdx:0,branchIdx:0};
+  let cnyJDN = toJDN(ly, CNY[ly-2000][0], CNY[ly-2000][1]);
+  if (todayJDN < cnyJDN) { ly--; if (ly<2000) return {year:ly,month:1,day:1,stemIdx:0,branchIdx:0}; cnyJDN = toJDN(ly,CNY[ly-2000][0],CNY[ly-2000][1]); }
+  const days = todayJDN - cnyJDN;
+  const SYNODIC = 29.530589;
+  let lMonth=1, lDay=1;
+  for (let i=0; i<13; i++) {
+    const mStart = Math.round(i*SYNODIC), mEnd = Math.round((i+1)*SYNODIC);
+    if (days >= mStart && days < mEnd) { lMonth=i+1; lDay=days-mStart+1; break; }
+    if (i===12) { lMonth=13; lDay=Math.max(1,days-Math.round(12*SYNODIC)+1); }
+  }
+  lMonth = Math.min(lMonth,12);
+  return {
+    year:ly, month:lMonth, day:lDay,
+    stemIdx: ((ly-4)%10+10)%10,
+    branchIdx: ((ly-4)%12+12)%12,
+  };
+}
+
+function getSolarTerm(m, d) {
+  const terms = SOLAR_TERMS[m-1];
+  if (d >= terms[1][0]) return terms[1][1];
+  if (d >= terms[0][0]) return terms[0][1];
+  // check prev month last term
+  const prev = SOLAR_TERMS[(m-2+12)%12];
+  return prev[1][1];
+}
+
+// Month ganzhi: approximate by counting months from a reference
+function monthGZ(year, month) {
+  // Year 2026 = 丙午. Month stem starts at 丙年 → 正月 is 戊寅 (stem index for first month = (year_stem*2+2)%10)
+  const yStem = ((year-4)%10+10)%10;
+  const mStemBase = (yStem * 2 + 2) % 10;
+  const mBranchBase = 2; // 寅 for 正月
+  const stemIdx = (mStemBase + month - 1) % 10;
+  const branchIdx = (mBranchBase + month - 1) % 12;
+  return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx] };
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────
+
+function render() {
+  const today  = new Date();
+  const gy = today.getFullYear(), gm = today.getMonth()+1, gd = today.getDate();
+  const jdn    = toJDN(gy, gm, gd);
+  const gzIdx  = dayGZ(jdn);
+  const stemIdx = gzIdx % 10, brIdx = gzIdx % 12;
+
+  const dayElemEN = ELEM_EN[stemIdx];
+  const lunar = getLunar(today);
+  const yearStem   = STEMS[lunar.stemIdx];
+  const yearBranch = BRANCHES[lunar.branchIdx];
+  const mGZ = monthGZ(lunar.year, lunar.month);
+
+  // Big day: Gregorian day as Chinese numeral-style display
+  // Show the Gregorian day number for the "big number" like in the reference
+  const bigDay = gd.toString();
+
+  // Lunar date strings
+  const lunarMonthStr = MONTHS_ZH[lunar.month-1];
+  const lunarDayStr   = LUNAR_DAYS[Math.max(0, Math.min(lunar.day-1, 29))];
+
+  // Month bar
+  document.getElementById('month-bar-text').textContent =
+    `${MONTHS_EN[gm-1]} ${gy} · ${MONTHS_ZH[gm-1]}`;
+
+  // Big number (Gregorian day)
+  document.getElementById('day-number').textContent = bigDay;
+  document.getElementById('day-label').textContent   = `农历 · ${lunarMonthStr}${lunarDayStr}`;
+
+  // Phrases by day element
+  const phrases = PHRASES[dayElemEN] || PHRASES.Fire;
+  document.getElementById('phrase-left').textContent  = phrases[0];
+  document.getElementById('phrase-right').textContent = phrases[1];
+
+  // GanZhi
+  document.getElementById('gz-year').textContent  = yearStem + yearBranch + '年';
+  document.getElementById('gz-month').textContent = mGZ.stem + mGZ.branch + '月';
+  document.getElementById('gz-day').textContent   = STEMS[stemIdx] + BRANCHES[brIdx] + '日';
+  document.getElementById('gz-elem').textContent  = ELEM_ZH[lunar.stemIdx] + '·' + ELEM_ZH[stemIdx];
+
+  // Info row
+  document.getElementById('lunar-full').textContent = lunarMonthStr + lunarDayStr;
+  document.getElementById('weekday').textContent    = WEEKDAYS[today.getDay()];
+  document.getElementById('solar-term').textContent = getSolarTerm(gm, gd);
+  document.getElementById('chong').textContent      = '冲' + CHONG_ZH[brIdx];
+
+  // Almanac
+  const aIdx = (stemIdx % 5) * 4 + (brIdx % 4);
+  const yiList = YI_DATA[aIdx] || YI_DATA[0];
+  const jiList = JI_DATA[aIdx] || JI_DATA[0];
+  document.getElementById('yi-list').innerHTML = yiList.map(t => `<div class="almanac-item">${t}<span class="almanac-item-en">${TRANS[t]||''}</span></div>`).join('');
+  document.getElementById('ji-list').innerHTML = jiList.map(t => `<div class="almanac-item">${t}<span class="almanac-item-en">${TRANS[t]||''}</span></div>`).join('');
+
+  // Zodiac
+  document.getElementById('zodiac-emoji').textContent = ZODIAC_EM[lunar.branchIdx];
+  document.getElementById('zodiac-zh').textContent    = yearStem + yearBranch + ' · ' + ELEM_ZH[lunar.stemIdx] + ZODIAC_ZH[lunar.branchIdx] + '年';
+  document.getElementById('zodiac-en').textContent    = 'Year of the ' + ELEM_EN[lunar.stemIdx] + ' ' + ZODIAC_EN[lunar.branchIdx];
+
+  // Lucky
+  const colors = LUCKY_COLORS[dayElemEN];
+  const nums   = LUCKY_NUMS[dayElemEN];
+  document.getElementById('lucky-dir').textContent  = '吉方 Lucky Dir 　' + DIRECTIONS[dayElemEN];
+  document.getElementById('lucky-num').textContent  = '吉数 Lucky Num 　' + nums[0] + ' · ' + nums[1];
+  document.getElementById('swatch1').style.background = colors.hex[0];
+  document.getElementById('swatch2').style.background = colors.hex[1];
+}
+
+render();
+</script>
+</body>
+</html>
